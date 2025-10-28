@@ -2,7 +2,7 @@
 // index.php
 
 // Define the content for clarity, although a simple echo would also work
-$content = "TEST3";
+$content = "3 days of headache for this!";
 ?>
 <!DOCTYPE html>
 <html lang="en">
