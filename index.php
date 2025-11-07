@@ -1,53 +1,67 @@
 <?php
-// index.php
 
-// Define the content for clarity, although a simple echo would also work
-$content = "3 days of headache for this!";
+// **1. Database Connection Details**
+$host = '195.179.239.102';
+$port = '3306';
+$username = 'u198084402_test';
+$password = 'TestPass25!'; // <--- REPLACE with your actual password!
+$database_name = 'u198084402_DATA'; // <--- REPLACE with the specific database name!
+
+// The table you want to read (assuming you know a table name)
+$table_name = 'MarksTable'; // <--- REPLACE with a real table name from your database!
+
+// **2. Construct the Data Source Name (DSN)**
+$dsn = "mysql:host=$host;port=$port;dbname=$database_name;charset=utf8mb4";
+
+// **3. Set PDO Options**
+$options = [
+    // Throw an exception for any database errors (recommended for development)
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    // Set default fetch mode to associative array
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    // Disable emulation mode for prepared statements
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+
+try {
+     // **4. Create PDO Connection**
+    $pdo = new PDO($dsn, $username, $password, $options);
+    echo "Connected to the database successfully!<br>";
+
+    // **5. Prepare and Execute the Query**
+    // Using a prepared statement for a simple SELECT is a good habit.
+    $stmt = $pdo->prepare("SELECT * FROM $table_name");
+    $stmt->execute();
+    
+    // **6. Fetch and Display Results**
+    echo "<h2>Contents of table: " . htmlspecialchars($table_name) . "</h2>";
+    echo "<table border='1'><thead><tr>";
+    
+    // Get column names for table header
+    for ($i = 0; $i < $stmt->columnCount(); $i++) {
+        $meta = $stmt->getColumnMeta($i);
+        echo "<th>" . htmlspecialchars($meta['name']) . "</th>";
+    }
+    echo "</tr></thead><tbody>";
+
+    // Loop through all rows
+    while ($row = $stmt->fetch()) {
+        echo "<tr>";
+        foreach ($row as $value) {
+            echo "<td>" . htmlspecialchars($value) . "</td>";
+        }
+        echo "</tr>";
+    }
+    
+    echo "</tbody></table>";
+
+} catch (\PDOException $e) {
+    // **7. Handle Connection/Query Errors**
+    echo "Connection failed: " . $e->getMessage();
+    // In a production environment, avoid echoing the full error message for security.
+}
+
+// **8. Close Connection (optional, but good practice)**
+$pdo = null;
+
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple PHP Test Page</title>
-    <style>
-        /* CSS for a simple, good-looking, and centered display */
-        body {
-            /* Full viewport height to allow centering */
-            height: 100vh;
-            /* Remove default margin */
-            margin: 0;
-            /* Basic font styling */
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9; /* Light, subtle background */
-
-            /* Flexbox for perfect vertical and horizontal centering */
-            display: flex;
-            justify-content: center; /* Center horizontally */
-            align-items: center; /* Center vertically */
-        }
-
-        .container {
-            /* Styles for the "TEST" word itself */
-            font-size: 5em; /* Large text */
-            font-weight: bold;
-            color: #333; /* Dark text color */
-            padding: 20px 40px;
-            border: 5px solid #007bff; /* Primary color border */
-            border-radius: 10px; /* Rounded corners */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            background-color: #ffffff; /* White background for the box */
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <?php
-        // PHP output: The content variable contains "TEST"
-        echo $content;
-        ?>
-    </div>
-</body>
-</html>
