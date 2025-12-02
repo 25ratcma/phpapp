@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Classic Literature Explorer</title>
-    <!-- Bootstrap 5 CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -16,22 +14,20 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Hero Section */
         .hero-section {
-            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); /* Sophisticated Classic colors */
+            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); 
             color: white;
             padding: 80px 0 100px;
-            margin-bottom: -60px; /* Overlap effect */
+            margin-bottom: -60px; 
             clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
         }
 
         .hero-title {
-            font-family: 'Georgia', serif; /* Serif for "Classic" feel */
+            font-family: 'Georgia', serif; 
             font-weight: 700;
             letter-spacing: -0.5px;
         }
 
-        /* Control Cards (The Two Paths) */
         .control-card {
             border: none;
             border-radius: 20px;
@@ -67,7 +63,6 @@
             color: #9c27b0;
         }
 
-        /* Book Card */
         .book-card {
             border: none;
             border-radius: 12px;
@@ -111,7 +106,6 @@
             color: #4a5568;
             font-size: 0.95rem;
             line-height: 1.6;
-            /* Text truncation */
             display: -webkit-box;
             -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
@@ -142,7 +136,6 @@
 <body>
 
 <?php
-// ** Configuration **
 $host = '195.179.239.102';
 $port = '3306';
 $username = 'u198084402_test';
@@ -157,10 +150,9 @@ $options = [
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
-// Initialize
 $books = [];
 $error_msg = "";
-$mode = $_GET['mode'] ?? 'home'; // 'home', 'genre', or 'author'
+$mode = $_GET['mode'] ?? 'home'; 
 $selected_genre = $_GET['genre'] ?? '';
 $selected_author = $_GET['author'] ?? '';
 $genres_list = [];
@@ -171,16 +163,13 @@ $page_subtitle = "A selection of timeless literature";
 try {
     $pdo = new PDO($dsn, $username, $password, $options);
 
-    // 1. Fetch Dropdown Data (Distinct Values)
     $stmt_g = $pdo->query("SELECT DISTINCT Genre FROM $table_name WHERE Genre IS NOT NULL AND Genre != '' ORDER BY Genre ASC");
     $genres_list = $stmt_g->fetchAll(PDO::FETCH_COLUMN);
 
     $stmt_a = $pdo->query("SELECT DISTINCT Author FROM $table_name WHERE Author IS NOT NULL AND Author != '' ORDER BY Author ASC");
     $authors_list = $stmt_a->fetchAll(PDO::FETCH_COLUMN);
 
-    // 2. Handle Display Logic
     if ($mode === 'genre' && !empty($selected_genre)) {
-        // Path A: Random Recommendations by Genre
         $sql = "SELECT * FROM $table_name WHERE Genre = :g ORDER BY RAND() LIMIT 4";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':g' => $selected_genre]);
@@ -190,7 +179,6 @@ try {
         $page_subtitle = "Here are some randomized suggestions for you.";
 
     } elseif ($mode === 'author' && !empty($selected_author)) {
-        // Path B: List by Author
         $sql = "SELECT * FROM $table_name WHERE Author = :a ORDER BY BookTitle ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':a' => $selected_author]);
@@ -200,7 +188,6 @@ try {
         $page_subtitle = "Browse the complete list of works available.";
 
     } else {
-        // Default: Show a few random featured books
         $sql = "SELECT * FROM $table_name ORDER BY RAND() LIMIT 6";
         $stmt = $pdo->query($sql);
         $books = $stmt->fetchAll();
@@ -211,7 +198,6 @@ try {
 }
 ?>
 
-<!-- Hero Header -->
 <div class="hero-section text-center">
     <div class="container">
         <h1 class="hero-title display-4 mb-3">Classic Literature Explorer</h1>
@@ -221,11 +207,9 @@ try {
     </div>
 </div>
 
-<!-- Main Control Area -->
 <div class="container" style="position: relative; z-index: 10;">
     <div class="row g-4 justify-content-center">
         
-        <!-- Way 1: By Genre (Randomized) -->
         <div class="col-md-5">
             <div class="control-card">
                 <div class="control-icon icon-genre">
@@ -251,7 +235,6 @@ try {
             </div>
         </div>
 
-        <!-- Way 2: By Author (List) -->
         <div class="col-md-5">
             <div class="control-card">
                 <div class="control-icon icon-author">
@@ -280,7 +263,6 @@ try {
     </div>
 </div>
 
-<!-- Results Section -->
 <div class="container main-container pb-5">
     
     <div class="section-header">
@@ -288,31 +270,26 @@ try {
         <p class="text-muted mb-0"><?php echo $page_subtitle; ?></p>
     </div>
 
-    <!-- Error Alert -->
     <?php if ($error_msg): ?>
         <div class="alert alert-danger shadow-sm rounded-3">
             <i class="fas fa-exclamation-circle me-2"></i> <?php echo htmlspecialchars($error_msg); ?>
         </div>
     <?php endif; ?>
 
-    <!-- Content Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         <?php if (count($books) > 0): ?>
             <?php foreach ($books as $book): ?>
                 <div class="col">
                     <div class="card book-card">
                         <div class="card-body">
-                            <!-- Genre Badge -->
                             <?php if (!empty($book['Genre'])): ?>
                                 <span class="genre-badge"><?php echo htmlspecialchars($book['Genre']); ?></span>
                             <?php endif; ?>
                             
                             <div style="clear:both;"></div>
 
-                            <!-- Title -->
                             <h3 class="book-title mt-2"><?php echo htmlspecialchars($book['BookTitle']); ?></h3>
                             
-                            <!-- Author -->
                             <span class="book-author">
                                 <i class="fas fa-pen-fancy me-1 text-muted"></i> 
                                 <?php echo htmlspecialchars($book['Author'] ?: 'Unknown Author'); ?>
@@ -320,7 +297,6 @@ try {
                             
                             <hr class="opacity-10 my-3">
                             
-                            <!-- Description -->
                             <p class="book-desc">
                                 <?php echo htmlspecialchars($book['Description'] ?: 'No description available for this title.'); ?>
                             </p>
@@ -342,7 +318,6 @@ try {
         <?php endif; ?>
     </div>
     
-    <!-- Reset Button -->
     <?php if ($mode !== 'home'): ?>
         <div class="text-center mt-5">
             <a href="?" class="btn btn-link text-muted">Clear Filters & Return Home</a>
@@ -351,7 +326,6 @@ try {
 
 </div>
 
-<!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
