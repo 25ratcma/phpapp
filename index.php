@@ -202,7 +202,7 @@ try {
     <div class="container">
         <h1 class="hero-title display-4 mb-3">Classic Literature Explorer</h1>
         <p class="lead opacity-75 mb-0" style="max-width: 600px; margin: 0 auto;">
-            Not sure where to start? Use our tools to discover your next favorite book based on your mood or favorite writer.
+            Not sure what to read? Find your next book with our tool!
         </p>
     </div>
 </div>
