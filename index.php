@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Catalog</title>
+    <title>Classic Literature Explorer</title>
     <!-- Bootstrap 5 CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for Icons -->
@@ -11,74 +11,86 @@
     
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f0f2f5;
             color: #2c3e50;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         /* Hero Section */
         .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); /* Sophisticated Classic colors */
             color: white;
-            padding: 60px 0 40px;
-            margin-bottom: 40px;
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 80px 0 100px;
+            margin-bottom: -60px; /* Overlap effect */
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
         }
 
         .hero-title {
+            font-family: 'Georgia', serif; /* Serif for "Classic" feel */
             font-weight: 700;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
-        /* Search Bar */
-        .search-container {
+        /* Control Cards (The Two Paths) */
+        .control-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             background: white;
-            padding: 8px;
-            border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: -30px auto 40px; /* Overlap hero */
+            padding: 30px;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .control-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-        }
-        
-        .search-input {
-            border: none;
-            flex-grow: 1;
-            padding: 10px 20px;
-            font-size: 1.1rem;
-            outline: none;
-            border-radius: 50px;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
         }
 
-        .search-btn {
-            border-radius: 50px;
-            padding: 10px 25px;
-            font-weight: 600;
+        .icon-genre {
+            background-color: #e3f2fd;
+            color: #0d6efd;
+        }
+
+        .icon-author {
+            background-color: #f3e5f5;
+            color: #9c27b0;
         }
 
         /* Book Card */
         .book-card {
             border: none;
-            border-radius: 15px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
             background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
             height: 100%;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
         }
 
         .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
         }
 
         .card-body {
             padding: 1.5rem;
+            flex-grow: 1;
         }
 
         .book-title {
+            font-family: 'Georgia', serif;
             font-size: 1.25rem;
             font-weight: 700;
             color: #2d3748;
@@ -91,14 +103,17 @@
             font-weight: 600;
             margin-bottom: 1rem;
             display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .book-desc {
             color: #4a5568;
             font-size: 0.95rem;
             line-height: 1.6;
+            /* Text truncation */
             display: -webkit-box;
-            -webkit-line-clamp: 4; /* Limit to 4 lines */
+            -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -112,24 +127,16 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
+            float: right;
+            margin-bottom: 10px;
         }
 
-        /* Sort Controls */
-        .sort-controls a {
-            text-decoration: none;
-            font-size: 0.9rem;
-            margin-left: 15px;
-            color: #718096;
-            font-weight: 500;
-            transition: color 0.2s;
+        .section-header {
+            border-left: 5px solid #4ca1af;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            margin-top: 40px;
         }
-        .sort-controls a:hover, .sort-controls a.active {
-            color: #764ba2;
-        }
-
     </style>
 </head>
 <body>
@@ -141,7 +148,7 @@ $port = '3306';
 $username = 'u198084402_test';
 $password = 'TestPass25!'; 
 $database_name = 'u198084402_DATA'; 
-$table_name = 'books'; // UPDATED to specific table
+$table_name = 'books'; 
 
 $dsn = "mysql:host=$host;port=$port;dbname=$database_name;charset=utf8mb4";
 $options = [
@@ -150,93 +157,135 @@ $options = [
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
-// Initialize variables
+// Initialize
 $books = [];
 $error_msg = "";
-$search_query = isset($_GET['q']) ? trim($_GET['q']) : '';
-
-// Sorting Logic
-$sort_col = isset($_GET['sort']) ? $_GET['sort'] : 'BookTitle';
-$sort_order = isset($_GET['order']) && strtoupper($_GET['order']) === 'DESC' ? 'DESC' : 'ASC';
-// Allowed sort columns for security
-$allowed_sorts = ['BookTitle', 'Author', 'Genre'];
-if (!in_array($sort_col, $allowed_sorts)) $sort_col = 'BookTitle';
+$mode = $_GET['mode'] ?? 'home'; // 'home', 'genre', or 'author'
+$selected_genre = $_GET['genre'] ?? '';
+$selected_author = $_GET['author'] ?? '';
+$genres_list = [];
+$authors_list = [];
+$page_title = "Featured Classics";
+$page_subtitle = "A selection of timeless literature";
 
 try {
     $pdo = new PDO($dsn, $username, $password, $options);
 
-    // Build Query
-    $sql = "SELECT * FROM $table_name";
-    $params = [];
+    // 1. Fetch Dropdown Data (Distinct Values)
+    $stmt_g = $pdo->query("SELECT DISTINCT Genre FROM $table_name WHERE Genre IS NOT NULL AND Genre != '' ORDER BY Genre ASC");
+    $genres_list = $stmt_g->fetchAll(PDO::FETCH_COLUMN);
 
-    // Add Search Filter
-    if ($search_query) {
-        $sql .= " WHERE BookTitle LIKE :q OR Author LIKE :q OR Genre LIKE :q OR Description LIKE :q";
-        $params[':q'] = "%$search_query%";
+    $stmt_a = $pdo->query("SELECT DISTINCT Author FROM $table_name WHERE Author IS NOT NULL AND Author != '' ORDER BY Author ASC");
+    $authors_list = $stmt_a->fetchAll(PDO::FETCH_COLUMN);
+
+    // 2. Handle Display Logic
+    if ($mode === 'genre' && !empty($selected_genre)) {
+        // Path A: Random Recommendations by Genre
+        $sql = "SELECT * FROM $table_name WHERE Genre = :g ORDER BY RAND() LIMIT 4";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':g' => $selected_genre]);
+        $books = $stmt->fetchAll();
+        
+        $page_title = "Recommendations: " . htmlspecialchars($selected_genre);
+        $page_subtitle = "Here are some randomized suggestions for you.";
+
+    } elseif ($mode === 'author' && !empty($selected_author)) {
+        // Path B: List by Author
+        $sql = "SELECT * FROM $table_name WHERE Author = :a ORDER BY BookTitle ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':a' => $selected_author]);
+        $books = $stmt->fetchAll();
+
+        $page_title = "Collection: " . htmlspecialchars($selected_author);
+        $page_subtitle = "Browse the complete list of works available.";
+
+    } else {
+        // Default: Show a few random featured books
+        $sql = "SELECT * FROM $table_name ORDER BY RAND() LIMIT 6";
+        $stmt = $pdo->query($sql);
+        $books = $stmt->fetchAll();
     }
-
-    // Add Sorting
-    $sql .= " ORDER BY $sort_col $sort_order";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $books = $stmt->fetchAll();
 
 } catch (\PDOException $e) {
     $error_msg = $e->getMessage();
-}
-
-// Helper to toggle sort order in links
-function getSortLink($col, $currentCol, $currentOrder, $search) {
-    $newOrder = ($col === $currentCol && $currentOrder === 'ASC') ? 'DESC' : 'ASC';
-    $searchPart = $search ? "&q=" . urlencode($search) : "";
-    return "?sort=$col&order=$newOrder" . $searchPart;
 }
 ?>
 
 <!-- Hero Header -->
 <div class="hero-section text-center">
     <div class="container">
-        <h1 class="hero-title display-4 mb-2"><i class="fas fa-book-open me-3"></i>Library Catalog</h1>
-        <p class="lead opacity-75">Discover your next great read</p>
+        <h1 class="hero-title display-4 mb-3">Classic Literature Explorer</h1>
+        <p class="lead opacity-75 mb-0" style="max-width: 600px; margin: 0 auto;">
+            Not sure where to start? Use our tools to discover your next favorite book based on your mood or favorite writer.
+        </p>
     </div>
 </div>
 
-<!-- Search Bar (Floating) -->
-<div class="container">
-    <form action="" method="GET">
-        <div class="search-container">
-            <i class="fas fa-search text-muted ps-3"></i>
-            <input type="text" name="q" class="search-input" placeholder="Search by title, author, or genre..." value="<?php echo htmlspecialchars($search_query); ?>">
-            <button type="submit" class="btn btn-primary search-btn">Search</button>
+<!-- Main Control Area -->
+<div class="container" style="position: relative; z-index: 10;">
+    <div class="row g-4 justify-content-center">
+        
+        <!-- Way 1: By Genre (Randomized) -->
+        <div class="col-md-5">
+            <div class="control-card">
+                <div class="control-icon icon-genre">
+                    <i class="fas fa-dice"></i>
+                </div>
+                <h3>Explore by Genre</h3>
+                <p class="text-muted small">Select a genre to receive <strong>randomized</strong> classic book recommendations.</p>
+                
+                <form action="" method="GET" class="mt-4">
+                    <input type="hidden" name="mode" value="genre">
+                    <div class="input-group">
+                        <select name="genre" class="form-select form-select-lg" required>
+                            <option value="" selected disabled>Select a Genre...</option>
+                            <?php foreach($genres_list as $g): ?>
+                                <option value="<?php echo htmlspecialchars($g); ?>" <?php echo $selected_genre === $g ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($g); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-primary" type="submit">Recommend</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <!-- Preserve sort if searching -->
-        <?php if(isset($_GET['sort'])): ?>
-            <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort_col); ?>">
-            <input type="hidden" name="order" value="<?php echo htmlspecialchars($sort_order); ?>">
-        <?php endif; ?>
-    </form>
+
+        <!-- Way 2: By Author (List) -->
+        <div class="col-md-5">
+            <div class="control-card">
+                <div class="control-icon icon-author">
+                    <i class="fas fa-feather-alt"></i>
+                </div>
+                <h3>Browse by Author</h3>
+                <p class="text-muted small">Select an author to view their full list of classic works available.</p>
+                
+                <form action="" method="GET" class="mt-4">
+                    <input type="hidden" name="mode" value="author">
+                    <div class="input-group">
+                        <select name="author" class="form-select form-select-lg" required>
+                            <option value="" selected disabled>Select an Author...</option>
+                            <?php foreach($authors_list as $a): ?>
+                                <option value="<?php echo htmlspecialchars($a); ?>" <?php echo $selected_author === $a ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($a); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-outline-dark" type="submit">View List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
 </div>
 
+<!-- Results Section -->
 <div class="container main-container pb-5">
     
-    <!-- Sort Controls -->
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <div class="text-muted">
-            Found <strong><?php echo count($books); ?></strong> books
-        </div>
-        <div class="sort-controls">
-            <span class="text-muted me-2">Sort by:</span>
-            <a href="<?php echo getSortLink('BookTitle', $sort_col, $sort_order, $search_query); ?>" class="<?php echo $sort_col === 'BookTitle' ? 'active' : ''; ?>">
-                Title <?php if($sort_col === 'BookTitle') echo $sort_order === 'ASC' ? '↑' : '↓'; ?>
-            </a>
-            <a href="<?php echo getSortLink('Author', $sort_col, $sort_order, $search_query); ?>" class="<?php echo $sort_col === 'Author' ? 'active' : ''; ?>">
-                Author <?php if($sort_col === 'Author') echo $sort_order === 'ASC' ? '↑' : '↓'; ?>
-            </a>
-            <a href="<?php echo getSortLink('Genre', $sort_col, $sort_order, $search_query); ?>" class="<?php echo $sort_col === 'Genre' ? 'active' : ''; ?>">
-                Genre <?php if($sort_col === 'Genre') echo $sort_order === 'ASC' ? '↑' : '↓'; ?>
-            </a>
-        </div>
+    <div class="section-header">
+        <h2 class="mb-1"><?php echo $page_title; ?></h2>
+        <p class="text-muted mb-0"><?php echo $page_subtitle; ?></p>
     </div>
 
     <!-- Error Alert -->
@@ -251,19 +300,21 @@ function getSortLink($col, $currentCol, $currentOrder, $search) {
         <?php if (count($books) > 0): ?>
             <?php foreach ($books as $book): ?>
                 <div class="col">
-                    <div class="card book-card h-100 position-relative">
+                    <div class="card book-card">
                         <div class="card-body">
                             <!-- Genre Badge -->
                             <?php if (!empty($book['Genre'])): ?>
                                 <span class="genre-badge"><?php echo htmlspecialchars($book['Genre']); ?></span>
                             <?php endif; ?>
                             
+                            <div style="clear:both;"></div>
+
                             <!-- Title -->
                             <h3 class="book-title mt-2"><?php echo htmlspecialchars($book['BookTitle']); ?></h3>
                             
                             <!-- Author -->
                             <span class="book-author">
-                                <i class="fas fa-pen-nib me-1 small"></i> 
+                                <i class="fas fa-pen-fancy me-1 text-muted"></i> 
                                 <?php echo htmlspecialchars($book['Author'] ?: 'Unknown Author'); ?>
                             </span>
                             
@@ -271,11 +322,11 @@ function getSortLink($col, $currentCol, $currentOrder, $search) {
                             
                             <!-- Description -->
                             <p class="book-desc">
-                                <?php echo htmlspecialchars($book['Description'] ?: 'No description available.'); ?>
+                                <?php echo htmlspecialchars($book['Description'] ?: 'No description available for this title.'); ?>
                             </p>
                         </div>
                         <div class="card-footer bg-white border-0 pt-0 pb-4 ps-4">
-                            <button class="btn btn-sm btn-outline-primary rounded-pill">View Details</button>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Read More</button>
                         </div>
                     </div>
                 </div>
@@ -283,13 +334,20 @@ function getSortLink($col, $currentCol, $currentOrder, $search) {
         <?php else: ?>
             <div class="col-12 text-center py-5">
                 <div class="text-muted opacity-50">
-                    <i class="fas fa-book fa-4x mb-3"></i>
+                    <i class="fas fa-search fa-3x mb-3"></i>
                     <h3>No books found</h3>
-                    <p>Try adjusting your search terms.</p>
+                    <p>Try selecting a different option above.</p>
                 </div>
             </div>
         <?php endif; ?>
     </div>
+    
+    <!-- Reset Button -->
+    <?php if ($mode !== 'home'): ?>
+        <div class="text-center mt-5">
+            <a href="?" class="btn btn-link text-muted">Clear Filters & Return Home</a>
+        </div>
+    <?php endif; ?>
 
 </div>
 
