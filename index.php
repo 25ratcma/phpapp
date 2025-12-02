@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classic Literature Explorer</title>
+    <title>Literature Explorer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -200,7 +200,7 @@ try {
 
 <div class="hero-section text-center">
     <div class="container">
-        <h1 class="hero-title display-4 mb-3">Classic Literature Explorer</h1>
+        <h1 class="hero-title display-4 mb-3">Literature Explorer</h1>
         <p class="lead opacity-75 mb-0" style="max-width: 600px; margin: 0 auto;">
             Not sure what to read? Find your next book with our tool!
         </p>
