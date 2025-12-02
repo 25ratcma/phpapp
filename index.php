@@ -301,10 +301,7 @@ try {
                                 <?php echo htmlspecialchars($book['Description'] ?: 'No description available for this title.'); ?>
                             </p>
                         </div>
-                        <div class="card-footer bg-white border-0 pt-0 pb-4 ps-4">
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Read More</button>
                         </div>
-                    </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
