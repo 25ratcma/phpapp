@@ -141,7 +141,6 @@ $port = '3306';
 $username = 'u198084402_test';
 $password = 'TestPass25!'; 
 $database_name = 'u198084402_DATA'; 
-$table_name = 'books'; 
 
 $dsn = "mysql:host=$host;port=$port;dbname=$database_name;charset=utf8mb4";
 $options = [
@@ -153,8 +152,10 @@ $options = [
 $books = [];
 $error_msg = "";
 $mode = $_GET['mode'] ?? 'home'; 
-$selected_genre = $_GET['genre'] ?? '';
-$selected_author = $_GET['author'] ?? '';
+
+$selected_genre_id = $_GET['genre_id'] ?? '';
+$selected_author_id = $_GET['author_id'] ?? '';
+
 $genres_list = [];
 $authors_list = [];
 $page_title = "Featured Classics";
@@ -163,38 +164,49 @@ $page_subtitle = "A selection of timeless literature";
 try {
     $pdo = new PDO($dsn, $username, $password, $options);
 
-    $stmt_g = $pdo->query("SELECT DISTINCT Genre FROM $table_name WHERE Genre IS NOT NULL AND Genre != '' ORDER BY Genre ASC");
-    $genres_list = $stmt_g->fetchAll(PDO::FETCH_COLUMN);
+    $stmt_g = $pdo->query("SELECT * FROM genres ORDER BY GenreName ASC");
+    $genres_list = $stmt_g->fetchAll();
 
-    $stmt_a = $pdo->query("SELECT DISTINCT Author FROM $table_name WHERE Author IS NOT NULL AND Author != '' ORDER BY Author ASC");
-    $authors_list = $stmt_a->fetchAll(PDO::FETCH_COLUMN);
+    $stmt_a = $pdo->query("SELECT * FROM authors ORDER BY AuthorName ASC");
+    $authors_list = $stmt_a->fetchAll();
 
-    if ($mode === 'genre' && !empty($selected_genre)) {
-        $sql = "SELECT * FROM $table_name WHERE Genre = :g ORDER BY RAND() LIMIT 4";
+    $base_sql = "SELECT b.BookTitle, b.Description, a.AuthorName, g.GenreName 
+                 FROM books b
+                 INNER JOIN authors a ON b.AuthorID = a.AuthorID
+                 INNER JOIN genres g ON b.GenreID = g.GenreID";
+
+    if ($mode === 'genre' && !empty($selected_genre_id)) {
+        $sql = $base_sql . " WHERE g.GenreID = :gid ORDER BY RAND() LIMIT 4";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([':g' => $selected_genre]);
+        $stmt->execute([':gid' => $selected_genre_id]);
         $books = $stmt->fetchAll();
         
-        $page_title = "Recommendations: " . htmlspecialchars($selected_genre);
+        $page_title = "Recommendations";
+        if(count($books) > 0) {
+            $page_title .= ": " . htmlspecialchars($books[0]['GenreName']);
+        }
         $page_subtitle = "Here are some randomized suggestions for you.";
 
-    } elseif ($mode === 'author' && !empty($selected_author)) {
-        $sql = "SELECT * FROM $table_name WHERE Author = :a ORDER BY BookTitle ASC";
+    } elseif ($mode === 'author' && !empty($selected_author_id)) {
+        $sql = $base_sql . " WHERE a.AuthorID = :aid ORDER BY b.BookTitle ASC";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([':a' => $selected_author]);
+        $stmt->execute([':aid' => $selected_author_id]);
         $books = $stmt->fetchAll();
 
-        $page_title = "Collection: " . htmlspecialchars($selected_author);
+        $page_title = "Collection";
+        if(count($books) > 0) {
+            $page_title .= ": " . htmlspecialchars($books[0]['AuthorName']);
+        }
         $page_subtitle = "Browse the complete list of works available.";
 
     } else {
-        $sql = "SELECT * FROM $table_name ORDER BY RAND() LIMIT 6";
+        $sql = $base_sql . " ORDER BY RAND() LIMIT 6";
         $stmt = $pdo->query($sql);
         $books = $stmt->fetchAll();
     }
 
 } catch (\PDOException $e) {
-    $error_msg = $e->getMessage();
+    $error_msg = "Database Error: " . $e->getMessage();
 }
 ?>
 
@@ -221,11 +233,12 @@ try {
                 <form action="" method="GET" class="mt-4">
                     <input type="hidden" name="mode" value="genre">
                     <div class="input-group">
-                        <select name="genre" class="form-select form-select-lg" required>
+                        <select name="genre_id" class="form-select form-select-lg" required>
                             <option value="" selected disabled>Select a Genre...</option>
                             <?php foreach($genres_list as $g): ?>
-                                <option value="<?php echo htmlspecialchars($g); ?>" <?php echo $selected_genre === $g ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($g); ?>
+                                <option value="<?php echo htmlspecialchars($g['GenreID']); ?>" 
+                                    <?php echo $selected_genre_id == $g['GenreID'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($g['GenreName']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -246,11 +259,12 @@ try {
                 <form action="" method="GET" class="mt-4">
                     <input type="hidden" name="mode" value="author">
                     <div class="input-group">
-                        <select name="author" class="form-select form-select-lg" required>
+                        <select name="author_id" class="form-select form-select-lg" required>
                             <option value="" selected disabled>Select an Author...</option>
                             <?php foreach($authors_list as $a): ?>
-                                <option value="<?php echo htmlspecialchars($a); ?>" <?php echo $selected_author === $a ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($a); ?>
+                                <option value="<?php echo htmlspecialchars($a['AuthorID']); ?>"
+                                    <?php echo $selected_author_id == $a['AuthorID'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($a['AuthorName']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -282,8 +296,8 @@ try {
                 <div class="col">
                     <div class="card book-card">
                         <div class="card-body">
-                            <?php if (!empty($book['Genre'])): ?>
-                                <span class="genre-badge"><?php echo htmlspecialchars($book['Genre']); ?></span>
+                            <?php if (!empty($book['GenreName'])): ?>
+                                <span class="genre-badge"><?php echo htmlspecialchars($book['GenreName']); ?></span>
                             <?php endif; ?>
                             
                             <div style="clear:both;"></div>
@@ -292,16 +306,16 @@ try {
                             
                             <span class="book-author">
                                 <i class="fas fa-pen-fancy me-1 text-muted"></i> 
-                                <?php echo htmlspecialchars($book['Author'] ?: 'Unknown Author'); ?>
+                                <?php echo htmlspecialchars($book['AuthorName'] ?: 'Unknown Author'); ?>
                             </span>
                             
                             <hr class="opacity-10 my-3">
                             
                             <p class="book-desc">
-                                <?php echo htmlspecialchars($book['Description'] ?: 'No description available for this title.'); ?>
+                                <?php echo htmlspecialchars($book['Description'] ?: 'No description available.'); ?>
                             </p>
                         </div>
-                        </div>
+                    </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
